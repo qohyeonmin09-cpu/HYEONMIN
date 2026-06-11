@@ -29,6 +29,9 @@ const els = {
   todayList: document.querySelector("#todayList"),
   weekdayTabs: document.querySelector("#weekdayTabs"),
   scheduleList: document.querySelector("#scheduleList"),
+  quickSubjects: document.querySelector("#quickSubjects"),
+  fillSubjectsButton: document.querySelector("#fillSubjectsButton"),
+  appendSubjectsButton: document.querySelector("#appendSubjectsButton"),
   periodList: document.querySelector("#periodList"),
   addEntryButton: document.querySelector("#addEntryButton"),
   firstStartButton: document.querySelector("#firstStartButton"),
@@ -83,6 +86,8 @@ function bindEvents() {
   els.tabs.forEach((button) => button.addEventListener("click", () => showTab(button.dataset.tab)));
   els.notifyButton.addEventListener("click", requestNotificationPermission);
   els.addEntryButton.addEventListener("click", () => openEntryDialog());
+  els.fillSubjectsButton.addEventListener("click", () => addQuickSubjects({ replaceExisting: true }));
+  els.appendSubjectsButton.addEventListener("click", () => addQuickSubjects({ replaceExisting: false }));
   els.firstStartButton.addEventListener("click", () => openTimeDial(parseTime(els.firstStartButton.textContent), (minutes) => {
     els.firstStartButton.textContent = formatTime(minutes);
   }));
@@ -175,6 +180,46 @@ function renderSchedule() {
     card.addEventListener("click", () => openEntryDialog(entry));
     els.scheduleList.append(card);
   });
+}
+
+function addQuickSubjects({ replaceExisting }) {
+  const subjects = els.quickSubjects.value
+    .split(/\r?\n/)
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (subjects.length === 0) return;
+
+  const periods = sortedPeriods();
+  const occupiedPeriodIds = new Set(
+    data.entries
+      .filter((entry) => entry.weekday === selectedWeekday && entry.timeMode === "period")
+      .map((entry) => entry.periodId)
+  );
+
+  if (replaceExisting) {
+    data.entries = data.entries.filter((entry) => entry.weekday !== selectedWeekday);
+  }
+
+  let subjectIndex = 0;
+  for (const period of periods) {
+    if (subjectIndex >= subjects.length) break;
+    if (!replaceExisting && occupiedPeriodIds.has(period.id)) continue;
+
+    data.entries.push({
+      id: crypto.randomUUID(),
+      weekday: selectedWeekday,
+      subjectName: subjects[subjectIndex],
+      timeMode: "period",
+      periodId: period.id,
+      customStartMinutes: null,
+      customEndMinutes: null
+    });
+    subjectIndex += 1;
+  }
+
+  els.quickSubjects.value = "";
+  saveAndRender();
 }
 
 function renderPeriods() {

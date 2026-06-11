@@ -39,6 +39,15 @@
         <button id="addEntryButton" class="icon-button" title="수업 추가">+</button>
       </div>
       <div class="weekday-tabs" id="weekdayTabs"></div>
+      <div class="subject-quick-entry">
+        <label for="quickSubjects">과목 빠른 입력</label>
+        <textarea id="quickSubjects" rows="4" placeholder="예: 국어&#10;수학&#10;영어&#10;과학"></textarea>
+        <div class="quick-actions">
+          <button id="fillSubjectsButton" class="primary" type="button">1교시부터 채우기</button>
+          <button id="appendSubjectsButton" type="button">빈 교시에 추가</button>
+        </div>
+        <p class="hint">선택한 요일에 과목을 한 줄씩 입력하면 교시 시간에 맞춰 자동으로 들어갑니다.</p>
+      </div>
       <div id="scheduleList" class="list"></div>
     </section>
 

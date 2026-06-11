@@ -178,11 +178,28 @@ h2 {
 }
 
 .quick-setup label,
+.subject-quick-entry label,
 .dialog-form label,
 .import-box label {
   display: grid;
   gap: 6px;
   color: var(--muted);
+}
+
+.subject-quick-entry {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .period-row {
