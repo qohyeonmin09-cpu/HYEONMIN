@@ -7,10 +7,10 @@ const weekdays = [
 ];
 
 const defaultData = {
-  version: 2,
-  periods: makePeriods(9 * 60, 50, 60, 7, 4, 13 * 60 + 10),
+  version: 3,
+  periods: makePeriods(8 * 60 + 20, 50, 10, 7, 4, 13 * 60 + 10),
   entries: [],
-  preference: { enabled: true, leadMinutes: 5 }
+  preference: { enabled: true, breakAlertMinutes: 5 }
 };
 
 let data = loadData();
@@ -34,7 +34,7 @@ const els = {
   firstStartButton: document.querySelector("#firstStartButton"),
   afterLunchStartButton: document.querySelector("#afterLunchStartButton"),
   classLength: document.querySelector("#classLength"),
-  periodInterval: document.querySelector("#periodInterval"),
+  breakLength: document.querySelector("#breakLength"),
   periodCount: document.querySelector("#periodCount"),
   applyQuickSetupButton: document.querySelector("#applyQuickSetupButton"),
   imageInput: document.querySelector("#imageInput"),
@@ -217,7 +217,7 @@ function renderPeriods() {
 }
 
 function renderSettings() {
-  els.leadMinutes.value = data.preference.leadMinutes;
+  els.leadMinutes.value = alertAfterBreakMinutes();
   els.notificationsEnabled.checked = data.preference.enabled;
   els.notificationStatus.textContent = notificationStatusText();
 }
@@ -233,11 +233,11 @@ function applyQuickSetup() {
   const firstStart = parseTime(els.firstStartButton.textContent);
   const afterLunchStart = parseTime(els.afterLunchStartButton.textContent);
   const classLength = clamp(Number(els.classLength.value || 50), 10, 120);
-  const interval = clamp(Number(els.periodInterval.value || 60), classLength, 180);
+  const breakLength = clamp(Number(els.breakLength.value || 10), 0, 60);
   const count = clamp(Number(els.periodCount.value || 7), 1, 12);
   const oldPeriodNumbers = new Map(data.periods.map((period) => [period.id, period.periodNumber]));
 
-  data.periods = makePeriods(firstStart, classLength, interval, count, 4, afterLunchStart);
+  data.periods = makePeriods(firstStart, classLength, breakLength, count, 4, afterLunchStart);
   data.entries = data.entries.map((entry) => {
     if (entry.timeMode !== "period") return entry;
     const periodNumber = oldPeriodNumbers.get(entry.periodId) ?? 1;
@@ -246,7 +246,8 @@ function applyQuickSetup() {
   saveAndRender();
 }
 
-function makePeriods(firstStart, classLength, interval, count, lunchAfterPeriod = 4, afterLunchStart = 13 * 60 + 10) {
+function makePeriods(firstStart, classLength, breakLength, count, lunchAfterPeriod = 4, afterLunchStart = 13 * 60 + 10) {
+  const interval = classLength + breakLength;
   return Array.from({ length: count }, (_, index) => {
     const start = index < lunchAfterPeriod
       ? firstStart + interval * index
@@ -493,7 +494,7 @@ function saveTimeDial() {
 }
 
 function updatePreference() {
-  data.preference.leadMinutes = clamp(Number(els.leadMinutes.value || 5), 1, 60);
+  data.preference.breakAlertMinutes = clamp(Number(els.leadMinutes.value || 5), 1, 60);
   data.preference.enabled = els.notificationsEnabled.checked;
   saveAndRender();
 }
@@ -520,7 +521,7 @@ function scheduleNotifications() {
 
     const timer = setTimeout(() => {
       new Notification(`곧 ${entry.subjectName} 시간이에요`, {
-        body: `${data.preference.leadMinutes}분 후 수업이 시작됩니다.`
+        body: `쉬는시간이 ${alertAfterBreakMinutes()}분 지났습니다. 다음 수업을 준비하세요.`
       });
       scheduleNotifications();
     }, delay);
@@ -536,7 +537,7 @@ function nextDelayForEntry(entry) {
   const target = new Date(now);
   const targetDay = entry.weekday - 1;
   const dayDelta = (targetDay - now.getDay() + 7) % 7;
-  const alertMinutes = (start - data.preference.leadMinutes + 1440) % 1440;
+  const alertMinutes = (start - minutesBeforeClassAlert() + 1440) % 1440;
 
   target.setDate(now.getDate() + dayDelta);
   target.setHours(Math.floor(alertMinutes / 60), alertMinutes % 60, 0, 0);
@@ -603,7 +604,7 @@ function loadData() {
   if (!saved) return structuredClone(defaultData);
   try {
     const parsed = JSON.parse(saved);
-    if ((parsed.version ?? 1) < 2 && (!parsed.entries || parsed.entries.length === 0)) {
+    if ((parsed.version ?? 1) < defaultData.version && (!parsed.entries || parsed.entries.length === 0)) {
       return structuredClone(defaultData);
     }
 
@@ -611,7 +612,7 @@ function loadData() {
       version: defaultData.version,
       periods: Array.isArray(parsed.periods) ? parsed.periods : structuredClone(defaultData.periods),
       entries: Array.isArray(parsed.entries) ? parsed.entries : [],
-      preference: { ...defaultData.preference, ...(parsed.preference ?? {}) }
+      preference: normalizePreference(parsed.preference)
     };
   } catch {
     return structuredClone(defaultData);
@@ -621,6 +622,23 @@ function loadData() {
 function saveData() {
   data.version = defaultData.version;
   localStorage.setItem("timeTableAlarmData", JSON.stringify(data));
+}
+
+function normalizePreference(preference = {}) {
+  return {
+    ...defaultData.preference,
+    ...preference,
+    breakAlertMinutes: preference.breakAlertMinutes ?? preference.leadMinutes ?? defaultData.preference.breakAlertMinutes
+  };
+}
+
+function alertAfterBreakMinutes() {
+  return clamp(Number(data.preference.breakAlertMinutes || 5), 1, 60);
+}
+
+function minutesBeforeClassAlert() {
+  const breakLength = clamp(Number(els.breakLength?.value || 10), 0, 60);
+  return Math.max(breakLength - alertAfterBreakMinutes(), 0);
 }
 
 function formatTime(minutes) {

@@ -48,14 +48,14 @@
       </div>
 
       <div class="quick-setup">
-        <button id="firstStartButton" class="time-button" type="button">09:00</button>
+        <button id="firstStartButton" class="time-button" type="button">08:20</button>
         <label>
           수업 시간
           <input id="classLength" type="number" min="10" max="120" step="5" value="50">
         </label>
         <label>
-          다음 교시 간격
-          <input id="periodInterval" type="number" min="20" max="180" step="5" value="60">
+          쉬는시간
+          <input id="breakLength" type="number" min="0" max="60" step="5" value="10">
         </label>
         <label>
           점심 후 시작
@@ -68,7 +68,7 @@
         <button id="applyQuickSetupButton" class="primary" type="button">자동 생성</button>
       </div>
 
-      <p class="hint">다음 교시 간격은 기본 60분입니다. 4교시 이후에는 점심시간을 넣고 5교시는 기본 13:10부터 시작합니다. 알림은 기본적으로 수업 시작 5분 전에 울리므로, 60분 간격에서는 이전 교시 시작 후 55분쯤 다음 과목을 알려줍니다.</p>
+      <p class="hint">기본은 수업 50분, 쉬는시간 10분입니다. 쉬는시간이 5분 지났을 때 다음 과목을 알려주므로, 다음 수업 시작 5분 전에 알림이 울립니다. 4교시 이후에는 점심시간 60분을 넣고 5교시는 13:10부터 시작합니다.</p>
       <div id="periodList" class="list"></div>
     </section>
 
@@ -98,9 +98,9 @@
         <h2>알림 설정</h2>
       </div>
       <div class="setting-row">
-        <label for="leadMinutes">알림 시점</label>
+        <label for="leadMinutes">쉬는시간 후 알림</label>
         <input id="leadMinutes" type="number" min="1" max="60" step="1">
-        <span>수업 시작 전 분</span>
+        <span>분 지난 뒤</span>
       </div>
       <div class="setting-row">
         <label for="notificationsEnabled">알림 사용</label>
@@ -171,6 +171,7 @@
         <input id="dialMinute" type="range" min="0" max="59" step="5">
       </label>
       <div class="dial-actions">
+        <button type="button" class="quick-time" data-time="08:20">08:20</button>
         <button type="button" class="quick-time" data-time="08:30">08:30</button>
         <button type="button" class="quick-time" data-time="09:00">09:00</button>
         <button type="button" class="quick-time" data-time="13:00">13:00</button>

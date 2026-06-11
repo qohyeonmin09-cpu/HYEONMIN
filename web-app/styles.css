@@ -172,7 +172,7 @@ h2 {
 
 .quick-setup {
   display: grid;
-  grid-template-columns: 110px repeat(3, minmax(100px, 1fr)) auto;
+  grid-template-columns: 110px repeat(4, minmax(100px, 1fr)) auto;
   gap: 10px;
   align-items: end;
 }
@@ -284,7 +284,7 @@ input[type="range"] {
 
 .dial-actions {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
 }
 
